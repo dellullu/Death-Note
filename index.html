@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notebook</title>
+    <style>
+        body {
+            background-color: #2e2e2e; /* Dark background to make the notebook stand out */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            overflow: hidden; /* Prevent scrolling on the body */
+            position: relative;
+        }
+
+        .cover,
+        .instructions,
+        .notebook {
+            position: absolute;
+            width: 400px;
+            height: 600px;
+            display: none; /* Hide all pages by default */
+        }
+
+        .cover {
+            background: url('cover.png') no-repeat center center;
+            background-size: cover;
+            display: block; /* Show cover by default */
+            cursor: pointer;
+        }
+
+        .instructions {
+            background: url('instructions.png') no-repeat center center;
+            background-size: cover;
+            display: none; /* Hide instructions by default */
+        }
+
+        .notebook {
+            background-color: #f5efdc; /* Cream color for the notebook */
+            border: 2px solid #000;
+            padding: 20px;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+            overflow: hidden; /* Hide scrollbars to be controlled by inner content */
+            display: none; /* Hide notebook by default */
+        }
+
+        .content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #000;
+            overflow-y: auto; /* Allow vertical scrolling */
+            padding-top: 10px; /* Reduced padding to eliminate gap */
+            height: calc(100% - 40px); /* Adjust height to account for fixed textarea */
+        }
+
+        .crossed {
+            text-decoration: line-through;
+            color: #000; /* Keep the crossed text black */
+        }
+
+        textarea {
+            width: calc(100% - 40px); /* Adjust width to fit within padding */
+            height: 40px; /* Fixed height for the textarea */
+            border: none;
+            outline: none;
+            background-color: transparent;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #fff; /* White color for the typed text */
+            placeholder-color: #fff; /* Placeholder text color */
+            resize: none;
+            position: fixed; /* Fixed position relative to the viewport */
+            top: 20px; /* Fixed position from the top */
+            left: 20px;
+            z-index: 10;
+            padding: 10px; /* Add padding for better user experience */
+        }
+
+        textarea::placeholder {
+            color: #fff; /* White color for the placeholder text */
+        }
+
+        .final-message {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 14px;
+            color: #999; /* Light gray to stand out but not overpower */
+            font-family: 'Georgia', serif;
+            text-align: center;
+            width: calc(100% - 40px); /* Adjust width to fit within padding */
+        }
+
+        #muteButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="cover" id="cover"></div>
+    <div class="instructions" id="instructions"></div>
+    <div class="notebook" id="notebook">
+        <textarea id="inputArea" placeholder="Enter their MSP user..."></textarea>
+        <div class="content" id="notebookContent"></div>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="backgroundAudio" loop>
+        <source src="L.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Mute/Unmute Button -->
+    <button id="muteButton">Unmute</button>
+
+    <script>
+        const cover = document.getElementById('cover');
+        const instructions = document.getElementById('instructions');
+        const notebook = document.getElementById('notebook');
+        const textarea = document.getElementById('inputArea');
+        const contentDiv = document.getElementById('notebookContent');
+        const muteButton = document.getElementById('muteButton');
+        const audio = document.getElementById('backgroundAudio');
+
+        // Show instructions page and hide cover when cover is clicked
+        cover.addEventListener('click', function() {
+            cover.style.display = 'none';
+            instructions.style.display = 'block';
+        });
+
+        // Show notebook and hide instructions when instructions page is clicked
+        instructions.addEventListener('click', function() {
+            instructions.style.display = 'none';
+            notebook.style.display = 'block';
+        });
+
+        // Function to handle crossing out after a delay
+        function crossOutLastLine() {
+            const lines = contentDiv.querySelectorAll('div');
+            const lastLine = lines[lines.length - 1];
+            if (lastLine) {
+                setTimeout(() => {
+                    lastLine.classList.add('crossed');
+                }, 2000); // 2-second delay before crossing out
+            }
+        }
+
+        textarea.addEventListener('keydown', function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent default Enter behavior in textarea
+
+                // Get the value entered and append it to the notebook content
+                const newLine = document.createElement('div');
+                newLine.textContent = textarea.value;
+                contentDiv.appendChild(newLine);
+
+                // Clear the textarea for the next line
+                textarea.value = '';
+
+                // Move to the new line and cross out the previous one after 2 seconds
+                crossOutLastLine();
+
+                // Automatically scroll to the bottom as new lines are added
+                contentDiv.scrollTop = contentDiv.scrollHeight;
+            }
+        });
+
+        // Mute/Unmute Button functionality
+        muteButton.addEventListener('click', function() {
+            if (audio.muted) {
+                audio.muted = false;
+                muteButton.textContent = 'Mute'; // Update button text
+            } else {
+                audio.muted = true;
+                muteButton.textContent = 'Unmute'; // Update button text
+            }
+        });
+
+        // Initialize audio muted
+        audio.muted = true;
+
+        // Ensure audio plays on user interaction
+        document.addEventListener('click', () => {
+            audio.play().catch(error => {
+                console.log('Audio play error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
